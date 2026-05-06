@@ -79,9 +79,9 @@ class _EventSetupScreenState extends State<EventSetupScreen> {
         const SnackBar(content: Text('Event created successfully.')),
       );
 
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const ScanScreen()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const CheckInScreen()),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -94,81 +94,209 @@ class _EventSetupScreenState extends State<EventSetupScreen> {
   String _formatSelectedDateTime() {
     final value = _selectedDateTime;
     if (value == null) return 'Select date and time';
-    return MaterialLocalizations.of(context).formatFullDate(value) +
-        ' • ' +
-        MaterialLocalizations.of(
-          context,
-        ).formatTimeOfDay(TimeOfDay.fromDateTime(value));
+    return '${MaterialLocalizations.of(context).formatFullDate(value)} • ${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(value))}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Create Event')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Event Name',
-                    border: OutlineInputBorder(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1E3A5F), Color(0xFF245D82)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Enter an event name';
-                    }
-                    return null;
-                  },
+                  borderRadius: BorderRadius.circular(28),
                 ),
-                const SizedBox(height: 16),
-                InkWell(
-                  onTap: _pickDateTime,
-                  borderRadius: BorderRadius.circular(4),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Date & Time',
-                      border: OutlineInputBorder(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Icon(
+                            Icons.event_available,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Event Setup',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Text(_formatSelectedDateTime()),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Create an event in one polished flow with clear capacity planning and time control.',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.92),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        _SummaryPill(
+                          label: 'Name',
+                          value: _nameController.text.isEmpty
+                              ? 'Unset'
+                              : _nameController.text,
+                        ),
+                        _SummaryPill(
+                          label: 'Time',
+                          value: _selectedDateTime == null
+                              ? 'Not picked'
+                              : 'Selected',
+                        ),
+                        _SummaryPill(
+                          label: 'Capacity',
+                          value: _capacityController.text.isEmpty
+                              ? '0'
+                              : _capacityController.text,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Event Name',
+                            prefixIcon: Icon(Icons.badge_outlined),
+                          ),
+                          textInputAction: TextInputAction.next,
+                          onChanged: (_) => setState(() {}),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Enter an event name';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        InkWell(
+                          onTap: _pickDateTime,
+                          borderRadius: BorderRadius.circular(18),
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Date & Time',
+                              prefixIcon: const Icon(Icons.schedule_outlined),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(18),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            child: Text(
+                              _formatSelectedDateTime(),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _capacityController,
+                          decoration: const InputDecoration(
+                            labelText: 'Max Capacity',
+                            prefixIcon: Icon(Icons.groups_2_outlined),
+                          ),
+                          keyboardType: TextInputType.number,
+                          onChanged: (_) => setState(() {}),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Enter max capacity';
+                            }
+                            final capacity = int.tryParse(value.trim());
+                            if (capacity == null || capacity <= 0) {
+                              return 'Enter a valid number greater than zero';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 18),
+                        FilledButton.icon(
+                          onPressed: _isSubmitting ? null : _submit,
+                          icon: const Icon(Icons.lock_open_rounded),
+                          label: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              _isSubmitting ? 'Saving...' : 'Create Event',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _capacityController,
-                  decoration: const InputDecoration(
-                    labelText: 'Max Capacity',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Enter max capacity';
-                    }
-                    final capacity = int.tryParse(value.trim());
-                    if (capacity == null || capacity <= 0) {
-                      return 'Enter a valid number greater than zero';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submit,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Text(_isSubmitting ? 'Saving...' : 'Create Event'),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SummaryPill extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _SummaryPill({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+      ),
+      child: RichText(
+        text: TextSpan(
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            TextSpan(text: value),
+          ],
         ),
       ),
     );
