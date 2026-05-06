@@ -19,12 +19,25 @@ class EventProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addEvent(String name) async {
+  Future<void> createEvent({
+    required String name,
+    required DateTime dateTime,
+    required int maxCapacity,
+  }) async {
     final id = _uuid.v4();
-    final event = Event(id: id, name: name);
+    final event = Event(
+      id: id,
+      name: name,
+      dateTime: dateTime,
+      maxCapacity: maxCapacity,
+    );
     _events.add(event);
     await StorageService.saveEvent(id, event.toMap());
     notifyListeners();
+  }
+
+  Future<void> addEvent(String name) async {
+    await createEvent(name: name, dateTime: DateTime.now(), maxCapacity: 0);
   }
 
   Future<void> toggleCheckIn(String id) async {
@@ -50,6 +63,8 @@ class EventProvider extends ChangeNotifier {
     final event = Event(
       id: id,
       name: 'Scanned: $id',
+      dateTime: DateTime.now(),
+      maxCapacity: 0,
       checkedIn: true,
       checkedInAt: DateTime.now(),
     );

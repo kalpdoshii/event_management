@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/event_provider.dart';
 import '../widgets/event_tile.dart';
-import 'scan_screen.dart';
+import 'event_setup_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,8 +33,8 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(
           context,
-        ).push(MaterialPageRoute(builder: (_) => ScanScreen())),
-        child: const Icon(Icons.qr_code_scanner),
+        ).push(MaterialPageRoute(builder: (_) => const EventSetupScreen())),
+        child: const Icon(Icons.add),
       ),
     );
   }
